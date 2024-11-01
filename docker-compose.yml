@@ -5,3 +5,4 @@ services:
     container_name: movies-api
     ports:
       - '9000:9000'
+    qw:
