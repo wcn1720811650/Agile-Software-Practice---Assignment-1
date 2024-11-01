@@ -1,11 +1,79 @@
-services:
+version: '3.0'
 
+networks:
+  backend:                       
+  frontend:                      
+  profile-network:
+    external: true
+    name: 'mongo-network'        
+
+volumes:
+  profiledata:                  
+  redisdata:                    
+
+services:
   api:
-    image: doconnor/movies-api:1.0
     container_name: movies-api
+    image: doconnor/movies-api:1.0
+    environment:
+      - MONGODB_URI=mongodb://admin:secret@database:27017
+      - REDIS_URI=redis://redis
+      - ENABLE_WRITING_HANDLERS=false
     ports:
-      - '9000:9000'
-    qw:
-    ww:
-    qq:
-    xx:
+      - 9000:9000
+    networks:
+      - backend
+    depends_on:
+      - database
+      - redis
+
+  app:
+    container_name: profileapp
+    image: profileapp:1.0
+    build: .                     
+    ports:
+      - 3000:3000
+    environment:
+      - MONGO_PASS=secret
+      - MONGO_HOST=database
+    networks:
+      - profile-network           
+
+  database:
+    container_name: mongoDB
+    image: mongo:8.0-rc
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    networks:
+      - backend
+      - frontend
+      - profile-network           
+    volumes:
+      - profiledata:/data/db
+    
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    networks:
+      - backend
+    volumes:
+      - redisdata:/data           
+
+  mongo-express:
+    container_name: express
+    image: mongo-express:1.0-20-alpine3.19
+    restart: always               
+    ports:
+      - 8080:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=secret
+      - ME_CONFIG_MONGODB_SERVER=database
+    networks:
+      - frontend
+    depends_on:
+      - database
+    deploy:
+      replicas: 0
