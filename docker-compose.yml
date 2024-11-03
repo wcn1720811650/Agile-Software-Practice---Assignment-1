@@ -1,15 +1,15 @@
 version: '3'
 
 networks:
-  backend:                       # Movies API, Redis, and MongoDB shared network
-  frontend:                      # Mongo Express network
+  backend:                       
+  frontend:                      
   profile-network:
     external: true
-    name: 'mongo-network'        # 为Profile App提供的外部网络
+    name: 'mongo-network'        
 
 volumes:
-  profiledata:                   # MongoDB数据卷
-  redisdata:                     # Redis数据卷
+  profiledata:                  
+  redisdata:                     
 
 services:
   movies-api:
@@ -20,9 +20,9 @@ services:
       - REDIS_URI=redis://redis
       - ENABLE_WRITING_HANDLERS=false
     ports:
-      - 9000:9000                # 映射Movies API端口9000到主机
+      - 9000:9000                
     networks:
-      - backend                  # 连接到backend网络
+      - backend                  
     depends_on:
       - database
       - redis
@@ -34,17 +34,18 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=secret
     networks:
-      - backend                  # 连接到backend用于Movies API
-      - frontend                 # 连接到frontend用于Mongo Express
-      - profile-network          # 连接到profile-network用于Profile App
+      - backend                  
+      - frontend                 
+      - profile-network          
     volumes:
       - profiledata:/data/db
+      - ./seeding.json:/docker-entrypoint-initdb.d/seeding.json
 
   redis:
     container_name: redis
     image: redis:alpine
     networks:
-      - backend                  # 仅连接到backend网络
+      - backend                  
     volumes:
       - redisdata:/data
 
@@ -53,12 +54,12 @@ services:
     image: mongo-express:1.0-20-alpine3.19
     restart: always
     ports:
-      - 8080:8081                # 将Mongo Express的8081端口映射到主机的8080端口
+      - 8080:8081                
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
       - ME_CONFIG_MONGODB_ADMINPASSWORD=secret
       - ME_CONFIG_MONGODB_SERVER=database
     networks:
-      - frontend                 # 仅连接到frontend网络
+      - frontend                 
     depends_on:
       - database
