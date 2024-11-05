@@ -68,14 +68,12 @@ services:
     image: mongo:8.0-rc
     depends_on:
       - database
-    profiles:
-      - dev
     volumes:
       - ./seeding.json:/seeding.json
     environment:
       - MONGODB_DATABASE=moviesdb
-      - MONGODB_URI=mongodb://admin:secret@database:27017  
+      - MONGODB_URI=mongodb://admin:secret@database:27017/moviesdb?authSource=admin  
     command: >
-        bash -c "mongoimport --host database --db moviesdb --collection your_collection_name --type json --file /seeding.json --jsonArray"
+        bash -c "mongoimport --host database --username admin --password secret --authenticationDatabase admin --db moviesdb --collection your_collection_name --type json --file /seeding.json --jsonArray"
     networks:
       - backend                    
